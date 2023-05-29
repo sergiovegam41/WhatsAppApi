@@ -1,0 +1,165 @@
+const  {CoreClass} = require("@bot-whatsapp/bot");
+const express = require('express')
+var request = require('request');
+
+const app = express()
+
+const readline = require('readline');
+var redis = require("redis");
+
+const { MongoClient, ServerApiVersion } = require('mongodb');
+const { Console } = require("console");
+const ObjectID = require('mongodb').ObjectID;
+
+
+const { init } = require("bot-ws-plugin-openai");
+const BaileysProvider = require("@bot-whatsapp/provider/baileys")
+const { handlerAI } = require("./utils");
+const { textToVoice } = require("./services/eventlab");
+
+
+const {
+  createBot,
+  createProvider,
+  createFlow,
+  addKeyword,
+  EVENTS,
+} = require("@bot-whatsapp/bot");
+var isReady = false;
+//Mongo DB
+
+const DATABASE = process.env.MONGO_DATABASE || "Bots" 
+const uriMongo = process.env.MONGO_URI;
+
+const Mongoclient = new MongoClient(uriMongo, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+var BotsCollection = null
+var ConfigCollection = null
+
+//Redis
+// var Redisclient = redis.createClient( process.env.REDIS_PORT, process.env.REDIS_URI,{no_ready_check: true}); 
+
+class PrincipalCoreClass extends CoreClass {
+
+    constructor  (_database, _provider) {
+
+        console.log("PrincipalCoreClass")
+        super (null, _database, _provider);
+
+        this.providerClass.on('ready', () => {
+            this.handleReadyEvent();
+            isReady = true;
+            console.log("ready")
+
+        });
+
+        this.providerClass.on('require_action', async () => {
+            isReady = false;
+        })
+      
+    }
+
+    isReady = () => {
+
+      return isReady
+    
+    }
+
+    handleReadyEvent() {
+
+        Mongoclient.connect( async err => {
+            BotsCollection = Mongoclient.db(DATABASE).collection("Bots");
+            ConfigCollection = Mongoclient.db(DATABASE).collection("Config");
+            if(err){ console.log(err) } else {
+                this.ready = true
+            }
+            console.log("Mongo Conectado a: "+DATABASE);
+        });
+
+        // Redisclient.auth( process.env.REDIS_PASSWORD, function (err) { 
+        //     console.log("Redis Conectado.");
+        //     if (err) { console.log(err) }
+        // }); 
+    
+       
+    }
+
+    handleMsg = async (ctx) =>  {
+
+        const { from, body } = ctx;
+
+       
+
+        if(!this.isReady){
+            return;
+        }
+
+
+
+        if(body.includes("_event_voice_note_")){
+
+            const text = await handlerAI(ctx);
+            console.log(`[TEXT]: ${text}`);
+
+            this.webhookSend(text,from)
+
+
+            console.log("NOTA DE VOZ")
+            return;
+        }
+
+        if(!body){
+            return;
+        }
+
+        if(body.includes("_event_") || body.trim() === ""){
+            console.log("unanswered")
+            return;
+        }
+
+        this.webhookSend(body,from)
+       
+
+    };
+
+    webhookSend = async (body,from) => {
+        let webhook = await ConfigCollection.findOne({ name: "webhook" })
+        let TokenWebhook = await ConfigCollection.findOne({ name: "TokenWebhook" })
+        
+        if(webhook){
+            try {
+                console.log(webhook.value)
+                var options = {
+                'method': 'POST',
+                'url': webhook.value,
+                'headers': {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                "phone": from,
+                "message": body,
+                "TokenWebhook":TokenWebhook.value
+                })
+                    }; 
+                        request(options, function (error, response) { 
+                            if (error) throw new Error(error); 
+                            console.log(response.body); 
+                    }); 
+                } catch (error) {
+                    console.log(error);
+                }
+        }
+    }
+    
+
+    hasAuthority = async (token) => {
+        let TokenWebhook = await ConfigCollection.findOne({ name: "TokenWebhook" })
+        return token == TokenWebhook.value
+    }
+    
+    
+}
+
+
+
+module.exports = PrincipalCoreClass;
