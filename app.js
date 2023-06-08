@@ -113,6 +113,14 @@ const main = async () => {
         let phone = req.body.phone
         let message = req.body.message
         
+        if(phone == null) return res.send({
+          success:false,
+          message: "PHONE_IS_REQUIRED",
+        })
+        
+
+
+        
         console.log("Send api message to: "+phone)
         console.log(message)
 
