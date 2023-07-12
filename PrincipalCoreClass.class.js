@@ -26,7 +26,6 @@ const {
   EVENTS,
 } = require("@bot-whatsapp/bot");
 var isReady = false;
-//Mongo DB
 
 const DATABASE = process.env.MONGO_DATABASE || "Bots" 
 const uriMongo = process.env.MONGO_URI;
@@ -34,9 +33,6 @@ const uriMongo = process.env.MONGO_URI;
 const Mongoclient = new MongoClient(uriMongo, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 var BotsCollection = null
 var ConfigCollection = null
-
-//Redis
-// var Redisclient = redis.createClient( process.env.REDIS_PORT, process.env.REDIS_URI,{no_ready_check: true}); 
 
 class PrincipalCoreClass extends CoreClass {
 
@@ -75,49 +71,69 @@ class PrincipalCoreClass extends CoreClass {
             console.log("Mongo Conectado a: "+DATABASE);
         });
 
-        // Redisclient.auth( process.env.REDIS_PASSWORD, function (err) { 
-        //     console.log("Redis Conectado.");
-        //     if (err) { console.log(err) }
-        // }); 
+
     
        
     }
 
     handleMsg = async (ctx) =>  {
 
-        const { from, body } = ctx;
+        try {
+
+            const { from, body } = ctx;
 
        
 
-        if(!this.isReady){
-            return;
+            if(!this.isReady){
+                return;
+            }
+    
+    
+            if(body == null){
+                return;
+            }
+    
+            if(body == undefined){
+                return;
+            }
+    
+            if(body.includes("_event_voice_note_")){
+    
+                const text = await handlerAI(ctx);
+                console.log(`[TEXT]: ${text}`);
+    
+                this.webhookSend(text,from)
+    
+    
+                console.log("NOTA DE VOZ")
+                return;
+            }
+    
+            if(!body){
+                return;
+            }
+    
+            if(body.includes("_event_") || body.trim() === ""){
+                console.log("unanswered")
+                return;
+            }
+    
+            this.webhookSend(body,from)
+    
+            this.flowDynamic(     [{ answer: "Hola"}]        ,[
+                { 
+                    
+                 buttons:[
+                    {
+                        body:"Hola"
+                    }
+                 ]
+                }
+              ], from);   
+            
+        } catch (error) {
+             console.log(error)
         }
-
-
-
-        if(body.includes("_event_voice_note_")){
-
-            const text = await handlerAI(ctx);
-            console.log(`[TEXT]: ${text}`);
-
-            this.webhookSend(text,from)
-
-
-            console.log("NOTA DE VOZ")
-            return;
-        }
-
-        if(!body){
-            return;
-        }
-
-        if(body.includes("_event_") || body.trim() === ""){
-            console.log("unanswered")
-            return;
-        }
-
-        this.webhookSend(body,from)
-       
 
     };
 
