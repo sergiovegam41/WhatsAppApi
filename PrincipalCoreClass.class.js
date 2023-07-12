@@ -119,17 +119,7 @@ class PrincipalCoreClass extends CoreClass {
             }
     
             this.webhookSend(body,from)
-    
-            this.flowDynamic(     [{ answer: "Hola"}]        ,[
-                { 
-                    
-                 buttons:[
-                    {
-                        body:"Hola"
-                    }
-                 ]
-                }
-              ], from);   
+
             
         } catch (error) {
              console.log(error)
