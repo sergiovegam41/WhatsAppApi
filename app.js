@@ -127,10 +127,15 @@ const main = async () => {
         const patronTelefono = /^[0-9]{12}$/;
 
         if( phone && message && patronTelefono.test(phone) ){
+
+          if(phone!=null && message != null){
+
+            bot.sendFlowSimple([{ answer: message}], phone);
+            res.send(true)
+      
+          }
     
-          bot.sendFlowSimple([{ answer: message}], phone);
-          res.send(true)
-    
+
         }else{
           res.send(false)
         }
