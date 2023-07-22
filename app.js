@@ -104,11 +104,11 @@ const main = async () => {
 
       if(bot.isReady()){
 
-        // let token = req.body.token||""
-        // if(! await bot.hasAuthority(token)) return res.send({
-        //   success:false,
-        //   message: "UNAUTHORIZED",
-        // })
+        let token = req.body.token||""
+        if(! await bot.hasAuthority(token)) return res.send({
+          success:false,
+          message: "UNAUTHORIZED",
+        })
         
         let phone = req.body.phone
         let message = req.body.message
