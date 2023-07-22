@@ -119,17 +119,20 @@ const main = async () => {
         })
       
         
-        console.log("Send api message to: "+phone)
-        console.log(message)
+        console.log("[ACTIVE_API]")
 
         const patronTelefono = /^[0-9]{12}$/;
 
         if( phone && message && patronTelefono.test(phone) ){
 
           if(phone!=null && message != null){
-
+           if(phone!="" && message != ""){
+              
+            console.log(phone)
+            console.log(message)
             bot.sendFlowSimple([{ answer: message}], phone);
             res.send(true)
+           }
       
           }
     
