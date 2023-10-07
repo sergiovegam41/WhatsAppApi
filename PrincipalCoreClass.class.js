@@ -118,7 +118,7 @@ class PrincipalCoreClass extends CoreClass {
                 return;
             }
     
-            // this.webhookSend(body,from)
+            this.webhookSend(body,from)
             // this.sendFlowSimple([{ answer: body}],from );
 
             
