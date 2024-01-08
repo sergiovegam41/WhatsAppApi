@@ -97,17 +97,19 @@ class PrincipalCoreClass extends CoreClass {
                 return;
             }
     
-            // if(body.includes("_event_voice_note_")){
+            if(body.includes("_event_voice_note_")){
     
-            //     const text = await handlerAI(ctx);
-            //     console.log(`[TEXT]: ${text}`);
+                const text = await handlerAI(ctx);
+                console.log(`[TEXT]: ${text}`);
     
-            //     this.webhookSend(text,from)
+                if(text != "ERROR"){
+                    this.webhookSend(text,from)
+                }
     
     
-            //     console.log("NOTA DE VOZ")
-            //     return;
-            // }
+                console.log("NOTA DE VOZ")
+                return;
+            }
     
             if(!body){
                 return;
