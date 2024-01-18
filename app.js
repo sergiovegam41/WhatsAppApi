@@ -59,11 +59,11 @@ const main = async () => {
   });
 
   app.get('/qr', async function(req, res) {
-    let token = req.query.token||""
-    if(! await bot.hasAuthority(token)) return res.send({
-      success:false,
-      message: "UNAUTHORIZED",
-    })
+    // let token = req.query.token||""
+    // if(! await bot.hasAuthority(token)) return res.send({
+    //   success:false,
+    //   message: "UNAUTHORIZED",
+    // })
     const path = `${process.cwd()}`;
     res.sendFile(path + `/bot.qr.png`);
   });
