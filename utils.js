@@ -13,6 +13,13 @@ const handlerAI = async (ctx) => {
   await fs.writeFile(pathTmpOgg, buffer);
   await convertOggMp3(pathTmpOgg, pathTmpMp3);
   const text = await voiceToText(pathTmpMp3);
+
+  try {
+    fs.unlink(pathTmpMp3, ()=>{})
+    fs.unlink(pathTmpOgg,()=>{})
+  } catch (error) {
+    
+  }
   return text; //el habla1!!
   /**
    * OMITIR

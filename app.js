@@ -18,7 +18,9 @@ const { init } = require("bot-ws-plugin-openai");
 const BaileysProvider = require("@bot-whatsapp/provider/baileys")
 const { handlerAI } = require("./utils");
 const { textToVoice } = require("./services/eventlab");
-
+// import multer from 'multer';
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 
 const {
   createBot,
@@ -35,61 +37,33 @@ const corsOptions = {
 
 app.use(cors(corsOptions)); 
 
-
-
 const main = async () => {
   
   const adapterDB = new MongoAdapter({
       dbUri: process.env.MONGO_URI,
       dbName:  process.env.MONGO_DATABASE,
   })
-
-
-
   
-
   const adapterProvider = await new BaileysProvider({});
   
-  // const flowVoiceNote = addKeyword(EVENTS.VOICE_NOTE).addAction(
-  //   async (ctx, ctxFn) => {
-  //       console.log("Mensaje de voz...");
-
-  //       // if(!this.isReady()){
-  //       // return;
-  //       // }
-    
-  //       const body = await handlerAI(ctx);
-  //       console.log(`[TEXT]: ${body}`);
-        
-  //       bot.webhookSend(body,ctx.from)
-    
-  //   }
-  //   );
-    
-  //   const adapterFlow = createFlow([
-  //    flowVoiceNote
-  //   ]);
-
 
   const bot = new PrincipalCoreClass(adapterDB, adapterProvider);
 
-
- 
-
-  // createBot({
-  //   flow: adapterFlow,
-  //   provider: adapterProvider,
-  //   database: adapterDB,
-  // });
   const port = process.env.PORT || 3000
   // QRPortalWeb()
  
+
   
   app.get('/require-scan', function(req, res) {
     res.send(!bot.isReady());
   });
 
-  app.get('/qr', function(req, res) {
+  app.get('/qr', async function(req, res) {
+    let token = req.query.token||""
+    if(! await bot.hasAuthority(token)) return res.send({
+      success:false,
+      message: "UNAUTHORIZED",
+    })
     const path = `${process.cwd()}`;
     res.sendFile(path + `/bot.qr.png`);
   });
@@ -98,17 +72,71 @@ const main = async () => {
     res.send(true)
   })
 
+
+  app.post('/sendImage', upload.any(), async (req, res) =>  {
+
+    if(!bot.isReady()){
+      return false
+    }
+
+    let token = req.body.token||""
+    if(! await bot.hasAuthority(token)) return res.send({
+      success:false,
+      message: "UNAUTHORIZED",
+    })
+
+   try {
+    let phone = req.body.phone
+    let message = req.body.message
+    
+    if(phone == null) return res.send({
+      success:false,
+      message: "PHONE_IS_REQUIRED",
+    })
+  
+    let i = 0;
+    for (const image of req.files) {  
+
+      await adapterProvider.sendImage(phone+"@s.whatsapp.net", image.path, i==0?message:"")
+
+    
+     try {
+      fs.unlink(image.path, (err) => {
+        if (err) {
+          console.error(err.message);
+          return;
+        }
+      });
+
+     } catch (error) {
+      
+     }
+
+      i++
+  }
+    console.log("hola")
+    
+    res.send(true)
+    
+  } catch (error) {
+    console.log(error)
+     res.send(false)
+    
+   }
+  });  
+
+
   app.post('/send', async function  (req, res) {
 
     try {
 
       if(bot.isReady()){
 
-        // let token = req.body.token||""
-        // if(! await bot.hasAuthority(token)) return res.send({
-        //   success:false,
-        //   message: "UNAUTHORIZED",
-        // })
+        let token = req.body.token||""
+        if(! await bot.hasAuthority(token)) return res.send({
+          success:false,
+          message: "UNAUTHORIZED",
+        })
         
         let phone = req.body.phone
         let message = req.body.message
