@@ -99,15 +99,15 @@ class PrincipalCoreClass extends CoreClass {
     
             if(body.includes("_event_voice_note_")){
     
-                const text = await handlerAI(ctx);
-                console.log(`[TEXT]: ${text}`);
+                // const text = await handlerAI(ctx);
+                // console.log(`[TEXT]: ${text}`);
     
-                if(text != "ERROR"){
-                    this.webhookSend(text,from)
-                }
+                // if(text != "ERROR"){
+                //     this.webhookSend(text,from)
+                // }
     
     
-                console.log("NOTA DE VOZ")
+                // console.log("NOTA DE VOZ")
                 return;
             }
     
