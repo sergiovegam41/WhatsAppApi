@@ -99,42 +99,56 @@ const main = async () => {
   })
 
   app.post('/send', async function  (req, res) {
-    const phone = req.body.phone;
-    const message = req.body.message;
-
-    // Validación de entrada
-    if (!phone || !message) {
-      return res.status(400).json({
-        success: false,
-        message: "PHONE_AND_MESSAGE_ARE_REQUIRED",
-      });
-    }
-
-    const patronTelefono = /^[0-9]{12}$/;
-    if (!patronTelefono.test(phone)) {
-      return res.status(400).json({
-        success: false,
-        message: "INVALID_PHONE_FORMAT",
-      });
-    }
-
-    if (!bot.isReady()) {
-      return res.status(503).json({
-        success: false,
-        message: "BOT_NOT_READY",
-      });
-    }
 
     try {
-      await bot.sendFlowSimple([{answer: message}], phone);
-      res.json({ success: true });
+
+      if(bot.isReady()){
+
+        // let token = req.body.token||""
+        // if(! await bot.hasAuthority(token)) return res.send({
+        //   success:false,
+        //   message: "UNAUTHORIZED",
+        // })
+
+        let phone = req.body.phone
+        let message = req.body.message
+
+        if(phone == null) return res.send({
+          success:false,
+          message: "PHONE_IS_REQUIRED",
+        })
+
+
+        console.log("[ACTIVE_API]")
+
+        const patronTelefono = /^[0-9]{12}$/;
+
+        if( phone && message && patronTelefono.test(phone) ){
+
+          if(phone!=null && message != null){
+           if(phone!="" && message != ""){
+
+            console.log(phone)
+            console.log(message)
+            bot.sendFlowSimple([{ answer: message}], phone);
+            res.send(true)
+           }
+
+          }
+
+
+        }else{
+          res.send(false)
+        }
+
+      }else{
+        res.send(false)
+      }
+
     } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        success: false,
-        message: "INTERNAL_SERVER_ERROR",
-      });
+      res.send(false)
     }
+
   })
 
   const server = app.listen(port, () => {
