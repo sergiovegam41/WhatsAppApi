@@ -64,8 +64,8 @@ const main = async () => {
     //   success:false,
     //   message: "UNAUTHORIZED",
     // })
-    const path = `${process.cwd()}`;
-    res.sendFile(path + `/bot.qr.png`);
+    // const path = `${process.cwd()}`;
+    res.sendFile(__dirname+`/bot.qr.png`);
   });
 
   app.get('/ping', function (req, res) {
