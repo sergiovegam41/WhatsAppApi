@@ -65,6 +65,9 @@ const main = async () => {
     //   message: "UNAUTHORIZED",
     // })
     // const path = `${process.cwd()}`;
+
+    console.log("dirname")
+    console.log(__dirname)
     res.sendFile(__dirname+`/bot.qr.png`);
   });
 
