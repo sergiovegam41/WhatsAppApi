@@ -4,8 +4,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: whatsapp-api
     ports:
       - "3000:3000"
+    networks:
+      - my-external-network
     volumes:
       - .:/app
       - /app/node_modules
+
+networks:
+    my-external-network:
+        external: true
